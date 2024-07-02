@@ -4,12 +4,14 @@ import ro.uaic.clinic_care.exceptions.ServiceException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ro.uaic.clinic_care.dto.appointment.*;
-import ro.uaic.clinic_care.models.*;
+import ro.uaic.clinic_care.models.Medic;
+import ro.uaic.clinic_care.models.history.*;
 import ro.uaic.clinic_care.repository.*;
 import ro.uaic.clinic_care.utils.ConvertUtils;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 
@@ -23,12 +25,52 @@ public class AppointmentServiceImpl {
     private final PatientRepository patientRepository;
     private final MedicIntervalServiceImpl medicIntervalService;
     private final TreatmentPlanRepository treatmentPlanRepository;
-    private final SymptomService symptomService;
+    private final SymptomServiceImpl symptomService;
     private final DiagnosticRepository diagnosticRepository;
-    private final DiseaseService diseaseService;
+    private final DiseaseServiceImpl diseaseService;
     private final DrugRepository drugRepository;
     private final MedicationRepository medicationRepository;
 
+    public AppointmentDTO getAppointmentDetails(Long id){
+        Appointment appointment = appointmentRepository.findById(id).orElseThrow();
+
+        AppointmentDTO appointmentDTO = new AppointmentDTO();
+        // Map fields from appointment to appointmentDTO
+        appointmentDTO.setId(appointment.getId());
+        appointmentDTO.setReason(appointment.getReason());
+        appointmentDTO.setDate(appointment.getStartDateTime().toLocalDate());
+        appointmentDTO.setPhoto(appointment.getMedicService().getPhotoLocation());
+        appointmentDTO.setStartTime(appointmentDTO.getStartTime());
+        appointmentDTO.setEndTime(appointmentDTO.getEndTime());
+        appointmentDTO.setDuration(appointmentDTO.getDuration());
+        appointmentDTO.setMarkedDate(new Date());
+        appointmentDTO.setRecommendations(appointment.getRecommendation());
+        appointmentDTO.setClinic(appointment.getMedicService().getMedic().getClinic().getName());
+        appointmentDTO.setParentAppointment("Annual Checkup");
+        appointmentDTO.setStatus(appointment.getStatus());
+
+        // Set nested objects
+        // Populate TreatmentPlanDTO, MedicDTO, ServicesDTO, etc.
+
+        // Example for MedicDTO
+        AppointmentDTO.MedicDTO medicDTO = new AppointmentDTO.MedicDTO();
+        Medic medic = appointment.getMedicService().getMedic();
+        medicDTO.setName(medic.getPerson().getFirstName() + " " + medic.getPerson().getLastName());
+        medicDTO.setSpecialty(medic.getDepartments().get(0).getDepartment().getName());
+        medicDTO.setLocation(medic.getClinic().getName());
+        // Add other fields and nested objects
+
+        appointmentDTO.setMedic(medicDTO);
+
+        // Set Files
+        appointmentDTO.setFiles(List.of(
+                new AppointmentDTO.FileDTO(1L, "Medical Report.pdf", "pdf", "/api/download?fileName=MedicalReport.pdf"),
+                new AppointmentDTO.FileDTO(2L, "Progress Photo.png", "image", "/api/download?fileName=ProgressPhoto.png"),
+                new AppointmentDTO.FileDTO(3L, "Prescription.txt", "text", "/api/download?fileName=Prescription.txt")
+        ));
+
+        return appointmentDTO;
+    }
 
     public boolean hasMedicAppointment(Long medicId, LocalDateTime startDateTime, LocalDateTime endDateTime) {
         Medic medic = medicRepository.findById(medicId).orElseThrow();
@@ -62,7 +104,7 @@ public class AppointmentServiceImpl {
         });
 
         var appointment = Appointment.builder()
-                .medic(medic)
+//                .medic(medic)
                 .patient(patientRepository.findById(dto.getPatientId()).orElseThrow())
                 .startDateTime(dto.getStartDateTime())
                 .endDateTime(dto.getEndDateTime())
@@ -81,7 +123,7 @@ public class AppointmentServiceImpl {
                 .build()
                 ;
 
-        appointment.setTreatmentPlan(treatmentPlan);
+//        appointment.setTreatmentPlan(treatmentPlan);
         appointmentRepository.save(appointment);
         treatmentPlanRepository.save(treatmentPlan);
 
@@ -98,7 +140,9 @@ public class AppointmentServiceImpl {
         if (appointment == null) {
             throw new ServiceException("Appointment not found");
         }
-        Diagnostic diagnostic = Diagnostic.builder().appointment(appointment).diagnosticDate(LocalDateTime.now()).build();
+        Diagnostic diagnostic = Diagnostic.builder().appointment(appointment)
+//                .diagnosticDate(LocalDateTime.now())
+                .build();
         appointment.setDiagnostic(diagnostic);
 
         List<Symptom> customSymptoms = symptomService.createSymptoms(addSymptomsDto.getCustomSymptoms());

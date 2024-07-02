@@ -12,4 +12,6 @@ public class TreatmentPlanServiceImpl {
     private final AppointmentRepository appointmentRepository;
     private final AppointmentServiceImpl appointmentService;
 
+
+
 }

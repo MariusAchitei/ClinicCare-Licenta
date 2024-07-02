@@ -1,16 +1,15 @@
 package ro.uaic.clinic_care.models;
 
-import jakarta.persistence.Entity;
-import lombok.*;
+import jakarta.persistence.Embeddable;
+import lombok.Builder;
+import lombok.Data;
 
 import java.time.LocalDateTime;
 
-@Entity
 @Data
 @Builder
-@AllArgsConstructor
-@NoArgsConstructor
-public class Person extends BaseEntity{
+@Embeddable
+public class Person {
     private String personalId;
     private String lastName;
     private String firstName;

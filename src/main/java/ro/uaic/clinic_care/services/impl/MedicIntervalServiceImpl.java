@@ -4,7 +4,7 @@ package ro.uaic.clinic_care.services.impl;
 import ro.uaic.clinic_care.dto.medic_interval.CreateMedicIntervalDto;
 import ro.uaic.clinic_care.dto.medic_interval.MedicIntervalFilterDto;
 import ro.uaic.clinic_care.exceptions.ServiceException;
-import ro.uaic.clinic_care.models.MedicInterval;
+import ro.uaic.clinic_care.models.old.MedicInterval;
 import ro.uaic.clinic_care.repository.MedicIntervalRepository;
 import ro.uaic.clinic_care.repository.MedicRepository;
 import ro.uaic.clinic_care.services.MedicIntervalService;
